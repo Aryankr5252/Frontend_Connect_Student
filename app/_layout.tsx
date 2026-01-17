@@ -35,6 +35,9 @@ function RootLayoutNav() {
       <Stack.Screen name="index" />
       <Stack.Screen name="auth/signup" />
       <Stack.Screen name="auth/login" />
+      <Stack.Screen name="myposts/index" />
+      <Stack.Screen name="marketplace/[id]" />
+      <Stack.Screen name="lostfound/[id]" />
     </Stack>
   );
 }

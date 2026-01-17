@@ -157,6 +157,17 @@ export const AuthProvider = ({ children }) => {
     promptAsync();
   };
 
+  const refreshUser = async () => {
+    try {
+      const result = await authService.verifyToken();
+      if (result.success) {
+        setUser(result.data);
+      }
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -165,6 +176,7 @@ export const AuthProvider = ({ children }) => {
     login: handleLogin,
     logout: handleLogout,
     signInWithGoogle,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

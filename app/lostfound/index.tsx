@@ -1,11 +1,12 @@
 // app/lostfound/index.tsx
-import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
-import React, { useState } from 'react';
-import { useRouter } from 'expo-router';
+import { View, Text, ScrollView, TouchableOpacity, Image, Alert, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { getLostItems, getFoundItems } from '../../services/lostFoundService';
 import '../../global.css';
 
-// Mock data with images
+// Mock data with images (fallback)
 const mockLostItems = [
   {
     id: 1,
@@ -72,15 +73,71 @@ const mockLostItems = [
 export default function LostFoundScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'lost' | 'found'>('lost');
+  const [items, setItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const filteredItems = mockLostItems.filter(item => item.type === activeTab);
+  // Fetch items from API
+  const fetchItems = async () => {
+    try {
+      setIsLoading(true);
+      const response = activeTab === 'lost' 
+        ? await getLostItems() 
+        : await getFoundItems();
+      
+      if (response.success && response.data) {
+        // Map the API response to include imageUrl
+        const formattedItems = response.data.data?.map((item: any) => {
+          // Convert relative image URL to absolute URL
+          let imageUrl = item.imageUrl || 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=400';
+          
+          // If imageUrl starts with /uploads, convert to full URL
+          if (imageUrl.startsWith('/uploads')) {
+            imageUrl = 'http://10.251.126.92:5001' + imageUrl;
+          }
+          
+          return {
+            ...item,
+            id: item._id,
+            image: imageUrl,
+          };
+        }) || [];
+        setItems(formattedItems);
+      } else {
+        console.log('Failed to fetch items, using mock data');
+        setItems(mockLostItems.filter(item => item.type === activeTab));
+      }
+    } catch (error) {
+      console.error('Error fetching items:', error);
+      setItems(mockLostItems.filter(item => item.type === activeTab));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load items when component mounts or tab changes
+  useEffect(() => {
+    fetchItems();
+  }, [activeTab]);
+
+  // Reload items when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchItems();
+    }, [activeTab])
+  );
+
+  // Pull to refresh
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchItems();
+    setRefreshing(false);
+  };
+
+  const filteredItems = items;
 
   const handleItemClick = (item: any) => {
-    Alert.alert(
-      item.itemName,
-      `Description: ${item.description}\n\nLocation: ${item.location}\nDate: ${new Date(item.lostDate).toLocaleDateString()}\n\nContact: ${item.contactNumber}`,
-      [{ text: 'Close' }]
-    );
+    router.push(`/lostfound/${item._id || item.id}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -125,7 +182,7 @@ export default function LostFoundScreen() {
             <Text className={`text-center font-bold ${
               activeTab === 'lost' ? 'text-white' : 'text-gray-400'
             }`}>
-              Lost Items ({mockLostItems.filter(i => i.type === 'lost').length})
+              Lost Items ({items.filter(i => i.type === 'lost').length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -139,7 +196,7 @@ export default function LostFoundScreen() {
             <Text className={`text-center font-bold ${
               activeTab === 'found' ? 'text-white' : 'text-gray-400'
             }`}>
-              Found Items ({mockLostItems.filter(i => i.type === 'found').length})
+              Found Items ({items.filter(i => i.type === 'found').length})
             </Text>
           </TouchableOpacity>
         </View>
@@ -150,8 +207,18 @@ export default function LostFoundScreen() {
         className="flex-1 px-6"
         contentContainerStyle={{ paddingTop: 20, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />
+        }
       >
-        {filteredItems.map((item) => (
+        {isLoading && !refreshing ? (
+          <View className="items-center justify-center py-20">
+            <ActivityIndicator size="large" color="#F97316" />
+            <Text className="text-gray-400 text-base mt-4">Loading items...</Text>
+          </View>
+        ) : (
+          <>
+            {filteredItems.map((item) => (
           <TouchableOpacity
             key={item.id}
             onPress={() => handleItemClick(item)}
@@ -211,13 +278,15 @@ export default function LostFoundScreen() {
           </TouchableOpacity>
         ))}
 
-        {filteredItems.length === 0 && (
+        {filteredItems.length === 0 && !isLoading && (
           <View className="items-center justify-center py-20">
             <MaterialIcons name="search-off" size={64} color="#6B7280" />
             <Text className="text-gray-400 text-lg mt-4">
               No {activeTab} items found
             </Text>
           </View>
+        )}
+          </>
         )}
       </ScrollView>
 

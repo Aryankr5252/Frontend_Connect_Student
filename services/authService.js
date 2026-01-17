@@ -116,3 +116,28 @@ export const getStoredToken = async () => {
     return null;
   }
 };
+
+// Update user profile
+export const updateProfile = async (name, email) => {
+  try {
+    const response = await api.put('/auth/profile', {
+      name,
+      email,
+    });
+    
+    if (response.data.success) {
+      // Update stored user data
+      const currentData = await AsyncStorage.getItem('userData');
+      if (currentData) {
+        const userData = JSON.parse(currentData);
+        userData.name = response.data.data.name;
+        userData.email = response.data.data.email;
+        await AsyncStorage.setItem('userData', JSON.stringify(userData));
+      }
+    }
+    
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { success: false, message: 'Profile update failed' };
+  }
+};

@@ -1,20 +1,19 @@
-// services/lostFoundService.js
+// services/marketplaceService.js
 import api from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Create a new lost/found item with image
-export const createLostFoundItem = async (itemData, imageUri = null) => {
+// Create a new marketplace item with image
+export const createMarketplaceItem = async (itemData, imageUri) => {
   try {
-    console.log('Creating lost/found item:', itemData);
+    console.log('Creating marketplace item:', itemData);
     
     // Create FormData for image upload
     const formData = new FormData();
     formData.append('itemName', itemData.itemName);
-    formData.append('description', itemData.description);
-    formData.append('lostDate', itemData.lostDate);
-    formData.append('location', itemData.location || 'Not specified');
-    formData.append('contactNumber', itemData.contactNumber);
-    formData.append('type', itemData.type);
+    formData.append('description', itemData.description || '');
+    formData.append('price', itemData.price.toString());
+    formData.append('sellerName', itemData.sellerName);
+    formData.append('category', itemData.category);
     
     // Add image if provided
     if (imageUri) {
@@ -29,16 +28,16 @@ export const createLostFoundItem = async (itemData, imageUri = null) => {
       });
     }
     
-    const response = await api.post('/lost-found', formData, {
+    const response = await api.post('/marketplace', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
     
-    console.log('Lost/Found item created:', response.data);
+    console.log('Marketplace item created:', response.data);
     return { success: true, data: response.data };
   } catch (error) {
-    console.error('Error creating lost/found item:', error.response?.data || error.message);
+    console.error('Error creating marketplace item:', error.response?.data || error.message);
     return {
       success: false,
       message: error.response?.data?.message || 'Failed to create item',
@@ -46,43 +45,43 @@ export const createLostFoundItem = async (itemData, imageUri = null) => {
   }
 };
 
-// Get all lost items
-export const getLostItems = async () => {
+// Get all buy items
+export const getBuyItems = async () => {
   try {
-    console.log('Fetching lost items...');
-    const response = await api.get('/lost-found/lost');
-    console.log('Lost items fetched:', response.data);
+    console.log('Fetching buy items...');
+    const response = await api.get('/marketplace/buy');
+    console.log('Buy items fetched:', response.data);
     return { success: true, data: response.data };
   } catch (error) {
-    console.error('Error fetching lost items:', error.response?.data || error.message);
+    console.error('Error fetching buy items:', error.response?.data || error.message);
     return {
       success: false,
-      message: error.response?.data?.message || 'Failed to fetch lost items',
+      message: error.response?.data?.message || 'Failed to fetch buy items',
     };
   }
 };
 
-// Get all found items
-export const getFoundItems = async () => {
+// Get all sell items
+export const getSellItems = async () => {
   try {
-    console.log('Fetching found items...');
-    const response = await api.get('/lost-found/found');
-    console.log('Found items fetched:', response.data);
+    console.log('Fetching sell items...');
+    const response = await api.get('/marketplace/sell');
+    console.log('Sell items fetched:', response.data);
     return { success: true, data: response.data };
   } catch (error) {
-    console.error('Error fetching found items:', error.response?.data || error.message);
+    console.error('Error fetching sell items:', error.response?.data || error.message);
     return {
       success: false,
-      message: error.response?.data?.message || 'Failed to fetch found items',
+      message: error.response?.data?.message || 'Failed to fetch sell items',
     };
   }
 };
 
-// Get user's own lost/found items
-export const getUserLostFoundItems = async () => {
+// Get user's own marketplace items
+export const getUserMarketplaceItems = async () => {
   try {
-    console.log('Fetching user lost/found items...');
-    const response = await api.get('/lost-found/my-items');
+    console.log('Fetching user marketplace items...');
+    const response = await api.get('/marketplace/my-items');
     console.log('User items fetched:', response.data);
     return { success: true, data: response.data };
   } catch (error) {
@@ -94,11 +93,11 @@ export const getUserLostFoundItems = async () => {
   }
 };
 
-// Update a lost/found item
-export const updateLostFoundItem = async (id, itemData) => {
+// Update a marketplace item
+export const updateMarketplaceItem = async (id, itemData) => {
   try {
-    console.log('Updating lost/found item:', id, itemData);
-    const response = await api.put(`/lost-found/${id}`, itemData);
+    console.log('Updating marketplace item:', id, itemData);
+    const response = await api.put(`/marketplace/${id}`, itemData);
     console.log('Item updated:', response.data);
     return { success: true, data: response.data };
   } catch (error) {
@@ -110,11 +109,11 @@ export const updateLostFoundItem = async (id, itemData) => {
   }
 };
 
-// Delete a lost/found item
-export const deleteLostFoundItem = async (id) => {
+// Delete a marketplace item
+export const deleteMarketplaceItem = async (id) => {
   try {
-    console.log('Deleting lost/found item:', id);
-    const response = await api.delete(`/lost-found/${id}`);
+    console.log('Deleting marketplace item:', id);
+    const response = await api.delete(`/marketplace/${id}`);
     console.log('Item deleted:', response.data);
     return { success: true, data: response.data };
   } catch (error) {
@@ -126,11 +125,11 @@ export const deleteLostFoundItem = async (id) => {
   }
 };
 
-// Get single lost/found item by ID
-export const getLostFoundItemById = async (id) => {
+// Get single marketplace item by ID
+export const getMarketplaceItemById = async (id) => {
   try {
-    console.log('Fetching lost/found item:', id);
-    const response = await api.get(`/lost-found/${id}`);
+    console.log('Fetching marketplace item:', id);
+    const response = await api.get(`/marketplace/${id}`);
     console.log('Item fetched:', response.data);
     return { success: true, data: response.data };
   } catch (error) {
@@ -143,11 +142,11 @@ export const getLostFoundItemById = async (id) => {
 };
 
 export default {
-  createLostFoundItem,
-  getLostItems,
-  getFoundItems,
-  getUserLostFoundItems,
-  updateLostFoundItem,
-  deleteLostFoundItem,
-  getLostFoundItemById,
+  createMarketplaceItem,
+  getBuyItems,
+  getSellItems,
+  getUserMarketplaceItems,
+  updateMarketplaceItem,
+  deleteMarketplaceItem,
+  getMarketplaceItemById,
 };

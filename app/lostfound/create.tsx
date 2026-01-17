@@ -32,7 +32,7 @@ export default function CreateLostFoundScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: [1, 1],
       quality: 0.8,
     });
 
@@ -76,7 +76,7 @@ export default function CreateLostFoundScreen() {
       };
 
       console.log('Submitting lost/found item:', itemData);
-      const result = await createLostFoundItem(itemData);
+      const result = await createLostFoundItem(itemData, image);
 
       setIsLoading(false);
 

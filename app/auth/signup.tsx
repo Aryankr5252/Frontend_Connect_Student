@@ -11,6 +11,7 @@ export default function SignupScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   
   const { signup, signInWithGoogle, loading } = useAuth();
   const router = useRouter();
@@ -51,7 +52,6 @@ export default function SignupScreen() {
       <View className="px-6 mb-10 mt-20">
         <View className="flex-row items-center justify-center mb-4">
           <Text className="text-4xl font-bold text-white">Create Account</Text>
-          <Text className="text-4xl ml-2">✨</Text>
         </View>
         <Text className="text-center text-gray-400 text-base">
           Join Student Connect today
@@ -63,38 +63,50 @@ export default function SignupScreen() {
         {/* Full Name Input */}
         <View className="mb-4">
           <TextInput
-            className="bg-gray-900 text-white px-6 py-4 rounded-2xl border border-gray-700 text-base"
+            className={`bg-gray-900 text-white px-6 py-4 rounded-2xl text-base ${
+              focusedField === 'name' ? 'border-2 border-orange-500' : 'border border-gray-700'
+            }`}
             placeholder="Full Name"
             placeholderTextColor="#9CA3AF"
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
+            onFocus={() => setFocusedField('name')}
+            onBlur={() => setFocusedField(null)}
           />
         </View>
 
         {/* Email Input */}
         <View className="mb-4">
           <TextInput
-            className="bg-gray-900 text-white px-6 py-4 rounded-2xl border border-gray-700 text-base"
+            className={`bg-gray-900 text-white px-6 py-4 rounded-2xl text-base ${
+              focusedField === 'email' ? 'border-2 border-orange-500' : 'border border-gray-700'
+            }`}
             placeholder="Email"
             placeholderTextColor="#9CA3AF"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            onFocus={() => setFocusedField('email')}
+            onBlur={() => setFocusedField(null)}
           />
         </View>
 
         {/* Password Input */}
         <View className="mb-6">
           <TextInput
-            className="bg-gray-900 text-white px-6 py-4 rounded-2xl border-2 border-orange-500 text-base"
+            className={`bg-gray-900 text-white px-6 py-4 rounded-2xl text-base ${
+              focusedField === 'password' ? 'border-2 border-orange-500' : 'border border-gray-700'
+            }`}
             placeholder="Password"
             placeholderTextColor="#9CA3AF"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
             autoCapitalize="none"
+            onFocus={() => setFocusedField('password')}
+            onBlur={() => setFocusedField(null)}
           />
         </View>
 
